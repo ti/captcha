@@ -124,6 +124,7 @@ func LoadFontFromReader(reader io.Reader) error {
 	return LoadFont(buf.Bytes())
 }
 
+
 // New creates a new captcha.
 // It returns captcha data and any freetype drawing error encountered.
 func New(width int, height int, option ...SetOption) (*Data, error) {
@@ -143,6 +144,25 @@ func New(width int, height int, option ...SetOption) (*Data, error) {
 	}
 
 	return &Data{Text: text, img: img}, nil
+}
+
+
+// New creates a new captcha by text
+// It returns captcha data and any freetype drawing error encountered.
+func NewImage(width int, height int, text string, option ...SetOption) (*image.NRGBA, error) {
+	options := newDefaultOption(width, height)
+	for _, setOption := range option {
+		setOption(options)
+	}
+	img := image.NewNRGBA(image.Rect(0, 0, width, height))
+	draw.Draw(img, img.Bounds(), &image.Uniform{options.BackgroundColor}, image.ZP, draw.Src)
+	drawNoise(img, options)
+	drawCurves(img, options)
+	err := drawText(text, img, options)
+	if err != nil {
+		return nil, err
+	}
+	return img, nil
 }
 
 // NewMathExpr creates a new captcha.
